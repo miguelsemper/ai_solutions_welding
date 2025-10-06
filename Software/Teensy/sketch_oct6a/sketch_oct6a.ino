@@ -22,6 +22,7 @@ void setup() {
   
   ads.begin();
   Serial.println("Teensy I2C ADC collector ready");
+  //collecting = true;
 }
 
 void loop() {
