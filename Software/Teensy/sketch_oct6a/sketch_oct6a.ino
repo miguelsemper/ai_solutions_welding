@@ -15,13 +15,12 @@ void onReceive(int numBytes);
 void onRequest();
 
 void setup() {
+  Serial.begin(115200);
   Wire.begin(I2C_SLAVE_ADDR);   // Initialize as I2C slave
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
   
-  Serial.begin(115200);
   ads.begin();
-
   Serial.println("Teensy I2C ADC collector ready");
 }
 
@@ -32,6 +31,12 @@ void loop() {
       lastSampleTime = now;
       int16_t adc0 = ads.readADC_SingleEnded(0);
       samples[sampleCount++] = adc0;
+
+      // Print the sample over Serial
+      Serial.print("Sample ");
+      Serial.print(sampleCount);
+      Serial.print(": ");
+      Serial.println(adc0);
     }
   }
 }
@@ -44,12 +49,15 @@ void onReceive(int numBytes) {
     collecting = true;
     sampleCount = 0;
     lastSampleTime = millis();
+    Serial.println("Start collecting samples");
   } 
   else if (cmd == 'E') {  // End collection
     collecting = false;
+    Serial.println("End of sample collection");
   } 
   else if (cmd == 'C') {  // Clear buffer
     sampleCount = 0;
+    Serial.println("Samples buffer cleared");
   }
 }
 
@@ -61,6 +69,8 @@ void onRequest() {
     uint16_t value = samples[sendIndex++];
     Wire.write((uint8_t *)&value, 2);
   } else {
-    sendIndex = 0; // reset after sending all
+    sendIndex = 0;       // reset index
+    sampleCount = 0;     // clear buffer after sending
+    Serial.println("All samples sent, buffer cleared");
   }
 }
