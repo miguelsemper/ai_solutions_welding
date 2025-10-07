@@ -1,7 +1,7 @@
 import Jetson.GPIO as GPIO
 import time
 
-PIN = 7  # Physical pin number (BOARD mode)
+PIN = 12  # Physical pin number (BOARD mode)
 READ_INTERVAL = 0.5  # seconds
 
 GPIO.setmode(GPIO.BOARD)
