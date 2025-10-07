@@ -7,11 +7,11 @@ import csv
 # Configuration Parameters
 # -------------------------
 I2C_ADDR = 0x08         # I2C address of the Teensy
-I2C_BUS = 1             # Jetson Nano I2C bus number
+I2C_BUS = 7             # Jetson Nano I2C bus number
 START_PIN = 17          # GPIO pin for start trigger
 END_PIN = 27            # GPIO pin for end trigger
 MAX_SAMPLES = 5000      # Expected maximum number of samples
-CSV_FILENAME = "data_log.csv"
+CSV_FILENAME = f"data/data_log_{int(time.time())}.csv"
 
 # -------------------------
 # Helper Functions
