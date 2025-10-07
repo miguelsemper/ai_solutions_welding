@@ -8,8 +8,8 @@ import csv
 # -------------------------
 I2C_ADDR = 0x08         # I2C address of the Teensy
 I2C_BUS = 7             # Jetson Nano I2C bus number
-START_PIN = 17          # GPIO pin for start trigger
-END_PIN = 27            # GPIO pin for end trigger
+START_PIN = 12          # GPIO pin for start trigger
+END_PIN = 12            # GPIO pin for end trigger
 MAX_SAMPLES = 5000      # Expected maximum number of samples
 CSV_FILENAME = f"data/data_log_{int(time.time())}.csv"
 
@@ -18,7 +18,7 @@ CSV_FILENAME = f"data/data_log_{int(time.time())}.csv"
 # -------------------------
 def wait_for_event(pin, edge):
     """Wait for a GPIO edge event."""
-    GPIO.wait_for_edge(pin, edge)
+    GPIO.wait_for_edge(12, edge)
 
 def i2c_write(cmd):
     """Send a single-byte command to the Teensy."""
@@ -41,7 +41,7 @@ def read_samples(num_samples):
 # Main Program
 # -------------------------
 def main():
-    GPIO.setmode(GPIO.BCM)
+    GPIO.setmode(GPIO.BOARD)
     GPIO.setup(START_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(END_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
