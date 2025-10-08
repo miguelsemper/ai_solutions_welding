@@ -11,7 +11,7 @@ I2C_BUS = 7             # Jetson Nano I2C bus number
 START_PIN = 12          # GPIO pin for start trigger
 END_PIN = 12            # GPIO pin for end trigger
 MAX_SAMPLES = 5000      # Expected maximum number of samples
-CSV_FILENAME = f"data/data_log_{int(time.time())}.csv"
+CSV_FILENAME = f"./data/data_log_{int(time.time())}.csv"
 
 # -------------------------
 # Helper Functions
