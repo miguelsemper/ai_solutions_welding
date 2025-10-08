@@ -56,7 +56,7 @@ def main():
     print("Collecting data... waiting for end trigger.")
     wait_for_event(END_PIN, GPIO.RISING)
     print("End trigger received")
-
+    time.sleep(0.1)
     # Stop collection
     i2c_write('E')
     time.sleep(0.05)
