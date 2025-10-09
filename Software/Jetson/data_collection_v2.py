@@ -7,26 +7,23 @@ from datetime import datetime
 # -------------------------
 # Configuration Parameters
 # -------------------------
-I2C_ADDR = 0x08         # I2C address of the Teensy
-I2C_BUS = 7             # Jetson Nano I2C bus number
-START_PIN = 12          # GPIO pin for start trigger
-END_PIN = 12            # GPIO pin for end trigger
-MAX_SAMPLES = 5000      # Expected maximum number of samples
-CSV_FILENAME = f"./data/data_log_{int(time.time())}.csv"
+I2C_ADDR = 0x08          # I2C address of the Teensy
+I2C_BUS = 1              # Jetson Nano I2C bus number
+START_PIN = 12           # GPIO pin for start trigger
+END_PIN = 12             # GPIO pin for end trigger
+MAX_SAMPLES = 5000       # Expected maximum number of samples
+CSV_FILENAME = "/home/etm3/Documents/welding/data_log.csv"  # Change path as needed
 
 # -------------------------
 # Helper Functions
 # -------------------------
 def wait_for_event(pin, edge):
-    """Wait for a GPIO edge event."""
     GPIO.wait_for_edge(12, edge)
 
 def i2c_write(cmd):
-    """Send a single-byte command to the Teensy."""
     bus.write_byte(I2C_ADDR, ord(cmd))
 
 def read_samples(num_samples):
-    """Read samples from Teensy, each sample is 2 bytes."""
     data = []
     for _ in range(num_samples):
         try:
@@ -34,7 +31,6 @@ def read_samples(num_samples):
             val = raw[0] | (raw[1] << 8)
             data.append(val)
         except OSError:
-            # Stop when Teensy stops responding (end of buffer)
             break
     return data
 
@@ -83,8 +79,6 @@ def main():
 
         print(f"Data saved. Waiting for next trigger...\n")
 
- #   GPIO.cleanup()
-
 # -------------------------
 # Entry Point
 # -------------------------
@@ -92,6 +86,8 @@ if __name__ == "__main__":
     bus = smbus2.SMBus(I2C_BUS)
     try:
         main()
+    except KeyboardInterrupt:
+        print("Program terminated by user.")
     finally:
-        #GPIO.cleanup()
+        GPIO.cleanup()
         bus.close()
