@@ -3,7 +3,8 @@ import Jetson.GPIO as GPIO
 import time
 import csv
 from datetime import datetime
-
+import matplotlib.pyplot as plt
+import os
 # -------------------------
 # Configuration Parameters
 # -------------------------
@@ -11,28 +12,48 @@ I2C_ADDR = 0x08          # I2C address of the Teensy
 I2C_BUS = 7              # Jetson Nano I2C bus number
 START_PIN = 12           # GPIO pin for start trigger
 END_PIN = 12             # GPIO pin for end trigger
-MAX_SAMPLES = 5000       # Expected maximum number of samples
 CSV_FILENAME = "./data/data_log.csv"  # Change path as needed
+
+# Setup file and plot
+fig_file = './test.png'
+fig, ax = plt.subplots()
 
 # -------------------------
 # Helper Functions
 # -------------------------
 def wait_for_event(pin, edge):
-    GPIO.wait_for_edge(12, edge)
+    """Wait for a GPIO edge event."""
+    GPIO.wait_for_edge(pin, edge)
 
 def i2c_write(cmd):
+    """Send single-character command to Teensy."""
     bus.write_byte(I2C_ADDR, ord(cmd))
 
-def read_samples(num_samples):
-    data = []
-    for _ in range(num_samples-1):
-        try:
+def read_samples():
+    """Read header (number of samples) + all data samples from Teensy."""
+    try:
+        # --- Read header: number of samples ---
+        header = bus.read_i2c_block_data(I2C_ADDR, 0, 2)
+        num_samples = header[0] | (header[1] << 8)
+        print(f"Header received: expecting {num_samples} samples")
+
+        data = []
+        for _ in range(num_samples):
             raw = bus.read_i2c_block_data(I2C_ADDR, 0, 2)
             val = raw[0] | (raw[1] << 8)
             data.append(val)
-        except OSError:
-            break
-    return data
+
+        if os.path.exists(fig_file):
+                os.remove(fig_file)
+        ax.clear()
+        ax.plot(data, label='current')
+        plt.title('test')
+        plt.savefig(fig_file)
+        return data
+
+    except OSError as e:
+        print(f"I2C communication error: {e}")
+        return []
 
 # -------------------------
 # Main Program
@@ -63,12 +84,12 @@ def main():
         wait_for_event(END_PIN, GPIO.RISING)
         print("End trigger received")
 
-        # Stop collection
+        # Stop collection and request data
         i2c_write('E')
         time.sleep(0.05)
 
         print("Reading data from Teensy...")
-        samples = read_samples(MAX_SAMPLES)
+        samples = read_samples()
         print(f"Received {len(samples)} samples.")
 
         # Save all samples as one row (timestamp + data)
