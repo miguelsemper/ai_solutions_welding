@@ -6,18 +6,20 @@ Adafruit_ADS1115 ads; // ADS1115 on Wire1
 
 #define JETSON_ADDR 0x08
 
-std::vector<int16_t> samples;           // dynamic buffer for channel 0
-const unsigned long sample_interval_us = 1000; // 1ms default
+std::vector<int16_t> samples;                 // dynamic buffer for channel 0
+const unsigned long sample_interval_us = 1000; // 1ms per sample
 bool collecting = false;
 bool sending = false;
 size_t send_index = 0;
+uint16_t total_samples = 0;
+bool header_sent = false;                     // to track if the header has been sent
 
 void setup() {
   Serial.begin(115200);
 
   // --- ADS1115 on I2C1 ---
   Wire1.begin();
-  ads.begin(0x48, &Wire1);   // Wire1 for ADS1115
+  ads.begin(0x48, &Wire1);   // ADS1115 on Wire1
   ads.setGain(GAIN_ONE);     // ±4.096V range
 
   // --- I2C0 for Jetson ---
@@ -48,29 +50,48 @@ void receiveEvent(int howMany) {
       collecting = true;
       sending = false;
       samples.clear();
+      header_sent = false;
       Serial.println("Started data collection");
     }
     else if (cmd == 'E') {
       collecting = false;
       sending = true;
       send_index = 0;
+      total_samples = samples.size();
+      header_sent = false;
       Serial.print("Stopped data collection. Total samples: ");
-      Serial.println(samples.size());
+      Serial.println(total_samples);
     }
   }
 }
 
 void requestEvent() {
-  if (sending && send_index < samples.size()) {
+  if (!sending) {
+    // Idle: send zeros when not sending data
+    uint16_t zero = 0;
+    Wire.write((uint8_t*)&zero, 2);
+    return;
+  }
+
+  // --- First send the header (number of samples) ---
+  if (!header_sent) {
+    Wire.write((uint8_t*)&total_samples, 2);
+    header_sent = true;
+    Serial.print("Header sent (samples = ");
+    Serial.print(total_samples);
+    Serial.println(")");
+    return;
+  }
+
+  // --- Then send samples ---
+  if (send_index < samples.size()) {
     int16_t value = samples[send_index++];
-    Wire.write((uint8_t*)&value, 2); // send 2 bytes per sample
-  } else {
-    Wire.write((uint8_t*)&0, 2); // send zeros when done
-    Serial.println("GOT HERE.");
-    if (sending && send_index >= samples.size()) {
+    Wire.write((uint8_t*)&value, 2);
+    if (send_index == (samples.size()-1)){
       Serial.println("All data sent to Jetson. Clearing buffer...");
       samples.clear();
       sending = false;
     }
+  } else {
   }
 }
