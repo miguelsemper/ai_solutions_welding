@@ -30,7 +30,7 @@ void setup() {
 
 void loop() {
   static unsigned long lastSampleTime = 0;
-
+while true
   if (collecting) {
     unsigned long now = micros();
     if (now - lastSampleTime >= sample_interval_us) {
