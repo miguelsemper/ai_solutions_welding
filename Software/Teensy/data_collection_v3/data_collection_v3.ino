@@ -21,6 +21,7 @@ void setup() {
   Wire1.begin();
   ads.begin(0x48, &Wire1);   // ADS1115 on Wire1
   ads.setGain(GAIN_ONE);     // ±4.096V range
+  ads.setDataRate(RATE_ADS1115_860SPS);
 
   // --- I2C0 for Jetson ---
   Wire.begin(JETSON_ADDR);
